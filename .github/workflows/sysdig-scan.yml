@@ -1,0 +1,50 @@
+name: Sysdig Image Scan
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  scan-vote:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build vote image
+        run: docker build -t vote:${{ github.sha }} ./vote
+      - name: Scan vote with Sysdig
+        uses: sysdiglabs/scan-action@v5
+        with:
+          image-tag: vote:${{ github.sha }}
+          sysdig-secure-token: ${{ secrets.SYSDIG_SECURE_TOKEN }}
+          sysdig-secure-url: https://eu2.app.sysdig.com
+          stop-on-failed-policy-eval: false
+
+  scan-worker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build worker image
+        run: docker build -t worker:${{ github.sha }} ./worker
+      - name: Scan worker with Sysdig
+        uses: sysdiglabs/scan-action@v5
+        with:
+          image-tag: worker:${{ github.sha }}
+          sysdig-secure-token: ${{ secrets.SYSDIG_SECURE_TOKEN }}
+          sysdig-secure-url: https://eu2.app.sysdig.com
+          stop-on-failed-policy-eval: false
+
+  scan-result:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build result image
+        run: docker build -t result:${{ github.sha }} ./result
+      - name: Scan result with Sysdig
+        uses: sysdiglabs/scan-action@v5
+        with:
+          image-tag: result:${{ github.sha }}
+          sysdig-secure-token: ${{ secrets.SYSDIG_SECURE_TOKEN }}
+          sysdig-secure-url: https://eu2.app.sysdig.com
+          stop-on-failed-policy-eval: false
