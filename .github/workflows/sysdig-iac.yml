@@ -13,10 +13,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Sysdig IaC Scan
-        uses: sysdiglabs/scan-action@v5
-        with:
-          iac-scan: true
-          sysdig-secure-token: ${{ secrets.SYSDIG_SECURE_TOKEN }}
-          sysdig-secure-url: https://eu2.app.sysdig.com
-          stop-on-failed-policy-eval: false
+      - name: Download Sysdig CLI scanner
+        run: |
+          curl -LO "https://download.sysdig.com/scanning/bin/sysdig-cli-scanner/$(curl -L -s https://download.sysdig.com/scanning/sysdig-cli-scanner/latest_version.txt)/linux/amd64/sysdig-cli-scanner"
+          chmod +x sysdig-cli-scanner
+
+      - name: Run IaC scan on k8s manifests
+        env:
+          SECURE_API_TOKEN: ${{ secrets.SYSDIG_SECURE_TOKEN }}
+        run: |
+          ./sysdig-cli-scanner \
+            --apiurl https://eu2.app.sysdig.com \
+            iac \
+            k8s-specifications/
